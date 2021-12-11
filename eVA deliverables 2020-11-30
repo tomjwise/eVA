@@ -1,0 +1,854 @@
+library(lubridate)
+library(tidyverse)
+library(kableExtra)
+library(busdater)
+# you may need more libraries
+
+
+#Import Data
+#---------------------------------------------------------------------------------
+#Load Data from Working Directory where you downloaded the New Data files to (change using drop down menu: 'Session'/'Set working memory'/'Choose Dir')
+VCU_Class_PO_fis16 <- read_csv("VCU_Class_PO_fis16.csv")
+VCU_Class_PO_fis17 <- read_csv("VCU_Class_PO_fis17.csv")
+VCU_Class_PO_fis18 <- read_csv("VCU_Class_PO_fis18.csv")
+VCU_Class_PO_fis19 <- read_csv("VCU_Class_PO_fis19.csv")
+VCU_Class_PO_fis20 <- read_csv("VCU_Class_PO_fis20.csv")
+VCU_Class_SO_fis16 <- read_csv("VCU_Class_SO_fis16.csv")
+VCU_Class_SO_fis17 <- read_csv("VCU_Class_SO_fis17.csv")
+VCU_Class_SO_fis18 <- read_csv("VCU_Class_SO_fis18.csv")
+VCU_Class_SO_fis19 <- read_csv("VCU_Class_SO_fis19.csv")
+VCU_Class_SO_fis20 <- read_csv("VCU_Class_SO_fis20.csv")
+VCU_Class_QQ_fis16 <- read_csv("VCU_Class_QQ_fis16.csv")
+VCU_Class_QQ_fis17 <- read_csv("VCU_Class_QQ_fis17.csv")
+VCU_Class_QQ_fis18 <- read_csv("VCU_Class_QQ_fis18.csv")
+VCU_Class_QQ_fis19 <- read_csv("VCU_Class_QQ_fis19.csv")
+VCU_Class_QQ_fis20 <- read_csv("VCU_Class_QQ_fis20.csv")
+
+# Add a column labeling the source file/year
+VCU_Class_PO_fis16$fiscal_year <- as.numeric("2016")
+VCU_Class_SO_fis16$fiscal_year <- as.numeric("2016")
+VCU_Class_QQ_fis16$fiscal_year <- as.numeric("2016")
+VCU_Class_PO_fis17$fiscal_year <- as.numeric("2017")
+VCU_Class_SO_fis17$fiscal_year <- as.numeric("2017")
+VCU_Class_QQ_fis17$fiscal_year <- as.numeric("2017")
+VCU_Class_PO_fis18$fiscal_year <- as.numeric("2018")
+VCU_Class_SO_fis18$fiscal_year <- as.numeric("2018")
+VCU_Class_QQ_fis18$fiscal_year <- as.numeric("2018")
+VCU_Class_PO_fis19$fiscal_year <- as.numeric("2019")
+VCU_Class_SO_fis19$fiscal_year <- as.numeric("2019")
+VCU_Class_QQ_fis19$fiscal_year <- as.numeric("2019")
+VCU_Class_PO_fis20$fiscal_year <- as.numeric("2020")
+VCU_Class_SO_fis20$fiscal_year <- as.numeric("2020")
+VCU_Class_QQ_fis20$fiscal_year <- as.numeric("2020")
+
+
+
+
+#-------------------------------------------------------------------------------------------------
+# Join all 5 years into one data table for PO/SO/QQ. Remove Universities & Colleges and any Departments/Agencies that do not start with an A
+
+
+#PO 
+#POJoin all years
+PO1617181920 <- rbind(VCU_Class_PO_fis16, VCU_Class_PO_fis17, VCU_Class_PO_fis18, VCU_Class_PO_fis19,  VCU_Class_PO_fis20)
+
+#QQ
+#QQJoin all years
+QQ1617181920 <- rbind(VCU_Class_QQ_fis16, VCU_Class_QQ_fis17, VCU_Class_QQ_fis18, VCU_Class_QQ_fis19,  VCU_Class_QQ_fis20)
+
+#SO
+#SOJoin all years
+SO1617181920 <- rbind(VCU_Class_SO_fis16, VCU_Class_SO_fis17, VCU_Class_SO_fis18, VCU_Class_SO_fis19,  VCU_Class_SO_fis20)
+
+#----------------------------------------------------------------
+#Change fields with Dates from Character fields to Date Fields in PO/SO/QQ
+
+#PO change format of a single date column (character format:DD-MM-YYYY 00:00:00) from character to date (YYYY-MM-DD)
+# using library(lubridate)
+PO1617181920$`Requisition submitted date` <- as.Date(dmy_hms(PO1617181920$`Requisition submitted date`))
+PO1617181920$`Requisition Approved Date` <- as.Date(dmy_hms(PO1617181920$`Requisition Approved Date`))
+PO1617181920$`ORDERDATE` <- as.Date(dmy_hms(PO1617181920$`ORDERDATE`))
+#Confirm change to date filed
+class(PO1617181920$`Requisition submitted date`)
+class(PO1617181920$`Requisition Approved Date`)
+class(PO1617181920$`ORDERDATE`)
+
+#QQchange format of a single date column (character format:07/17/2018) from character to date
+QQ1617181920$`Closed Date` <- as.Date(QQ1617181920$`Closed Date`, "%m/%d/%Y")
+QQ1617181920$`Award Date` <- as.Date(QQ1617181920$`Award Date`, "%m/%d/%Y")
+QQ1617181920$`Original Published Date` <- as.Date(QQ1617181920$`Original Published Date`, "%m/%d/%Y")
+#Confirm change to date filed
+class(QQ1617181920$`Closed Date`)
+class(QQ1617181920$`Award Date`)
+
+#SOchange format of a single date column (character format:07/17/2018) from character to date
+SO1617181920$`Original Publish Date` <- as.Date(SO1617181920$`Original Publish Date`, "%m/%d/%Y")
+SO1617181920$`Publish Date` <- as.Date(SO1617181920$`Publish Date`, "%m/%d/%Y")
+SO1617181920$`Award Date` <- as.Date(SO1617181920$`Award Date`, "%m/%d/%Y")
+SO1617181920$`Closing Date` <- as.Date(SO1617181920$`Closing Date`, "%m/%d/%Y")
+#Confirm change to date filed
+class(SO1617181920$`Original Publish Date`)
+
+
+#----------------------------------------------------------------
+#to check: show all headers and their data types
+str(PO1617181920)
+str(SO1617181920)
+str(QQ1617181920)
+
+
+
+#--------------------------------------------------------------------------------------------
+#Remove all rows but your Departments - mine is A602 (Department of Medical Assistance Services)
+
+PO1617181920a602 <- PO1617181920%>% filter(str_detect(`Entity Code`, "A602"))
+QQ1617181920a602 <- QQ1617181920%>% filter(str_detect(`Department Code`, "A602"))
+SO1617181920a602 <- SO1617181920%>% filter(str_detect(`Department Code`, "A602"))
+
+
+#--------------------------------------------------------------------------------------------
+#filter extreme rows from A602 `Order #` EP2539756, EP2539757,  EP2539759, EP2539761, EP2539762, EP2539787
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2539756"))
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2539757"))
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2539759"))
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2539761")) 
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2539762"))
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2539787"))
+
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2797974"))
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2797975"))
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2797978"))
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2797980")) 
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2797982"))
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2797983"))
+
+
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2696420"))
+PO1617181920a602 <- PO1617181920a602 %>% filter(!str_detect(`Order #`, "EP2694236"))
+
+
+
+#--------------------------------------------------------------------------------------
+
+# Code to keep only one year
+PO18a602 <- PO1617181920a602%>% filter(str_detect(fiscal_year, "18"))
+PO17a602 <- PO1617181920a602%>% filter(str_detect(fiscal_year, "17"))
+
+
+#---------------------------------------------------------------------------------
+#cap PO's by $
+POa602 <- PO1617181920a602%>% filter(`Total Cost` <8000000)
+#-------------------------------------------------------------------------------
+#1. 	PO - Annual Spend: 'Total Cost' per Financial Year
+
+#cap PO's by $
+POa602 <- PO1617181920a602%>% filter(`Total Cost` <8000000)
+
+# grouping, selecting necessary columns, summarizing (summing) Total Costs
+for_plot <- POa602 %>%
+  group_by(fiscal_year, `Order Status`) %>%
+  select(fiscal_year, `Order Status`, `Total Cost`) %>%
+  summarize(sum_total_cost=sum(`Total Cost`), .groups = "drop")
+
+# Make Table #library("kableExtra")
+for_plot  %>%
+  kbl() %>%
+  kable_styling()
+
+POannualAwards <- PO1617181920a602 %>%
+  group_by(fiscal_year) %>%
+  select(fiscal_year, `Total Cost`) %>%
+  summarize(sum_total_cost=sum(`Total Cost`), .groups = "drop")
+
+# Make Table #library("kableExtra")
+POannualAwards  %>%
+  kbl() %>%
+  kable_styling()
+
+
+# for a quick intro into barplots with ggplot2:
+# see http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization
+p <- ggplot(for_plot, aes(x = fiscal_year, y = sum_total_cost, fill = `Order Status`))
+p <- p + geom_bar(stat = "identity")
+p <- p + ylab("Total Cost") # adds y axis label
+p <- p + xlab("Order Year") # adds x axis label
+p <- p + labs(fill = "Order Status") # to change the legend label
+p <- p + ggtitle('PO $ spend/Year <$100000')
+p
+
+#pdf("Q1.pdf", width = 6, height = 6)
+#dev.off()
+
+
+
+
+#-------------------------------------------------------------------------------
+#Q1 PO count by year
+
+#PO Count by year
+# Barchart
+# x-axis: FY Year
+# y-axis: Count of Order #
+# Heading: QQ Count by year
+for_plot <- PO1617181920a602 %>%
+  group_by(fiscal_year) %>%
+  select(fiscal_year, `Order #`) %>%
+  summarize(PO_count = n_distinct(`Order #`), .groups = "drop")
+
+for_plot$Year_factor <- as.factor(for_plot$fiscal_year)
+
+p <- ggplot(for_plot, aes(x = Year_factor, y = PO_count))
+p <- p + geom_bar(stat = "identity", fill = "#FF6666")
+p <- p + ylab("Total PO Count")
+p <- p + xlab("Year")
+p <- p + geom_text(aes(label = PO_count, y = PO_count), vjust = -.5)
+p <- p + ggtitle("PO Count by year") # add title
+p <- p + theme(plot.title = element_text(hjust = 0.5)) # center title
+p
+
+#pdf("PO_count_by_year.pdf", width = 6, height = 6)
+#p
+#dev.off()
+
+
+#-------------------------------------------------------------------------------
+# SO Q3/11 Count of SO Bid Number by year grouped by Application (ADV/VBO)
+# Barchart
+# x-axis: FY Order Date (year) & VBO/ADV
+# y-axis: Count of Bid Number
+# Label: Count of Bid Number on top of bar
+
+SO1617181920a602 <- SO1617181920a602 %>%
+  filter(fiscal_year != 2021)%>%
+  filter(fiscal_year != 2015)
+
+for_plot <- SO1617181920a602%>%
+  group_by(fiscal_year, Application) %>%
+  select(fiscal_year, Application, `Bid Number`) %>%
+  summarize(num_orders = n_distinct(`Bid Number`), .groups = "drop")
+
+for_plot$Year_factor <- as.factor(for_plot$fiscal_year)
+
+p <- ggplot(for_plot, aes(x = Year_factor, y = num_orders, fill = Application))
+p <- p + geom_bar(stat = "identity")
+p <- p + ylab("Total Number of Bids")
+p <- p + xlab("Year")
+p <- p + labs(fill = "Application")
+p <- p + ggtitle('SO Bid Number count by Year')
+p
+
+#pdf("Q3.pdf", width = 6, height = 6)
+#dev.off()
+
+# Remove column: Year_factor
+for_plot = subset(for_plot, select = - Year_factor )
+
+# Make Table #library("kableExtra")
+for_plot %>%
+  kbl() %>%
+  kable_styling()
+
+
+
+
+#-------------------------------------------------------------------------------
+#SO Q4 Application ADV $ by year
+# Barchart
+# x-axis: FY Order Date (year)
+# y-axis: Sum of Award Amount
+# Label: Count of Award Amount on top of bar
+
+for_plot <- SO1617181920a602%>%
+  group_by(fiscal_year) %>%
+  select(fiscal_year, `Award Amount`) %>%
+  summarize(total_award_amount = sum(`Award Amount`, na.rm = TRUE), .groups = "drop")
+
+for_plot$Year_factor <- as.factor(for_plot$fiscal_year)
+
+p <- ggplot(for_plot, aes(x = Year_factor, y = total_award_amount))
+p <- p + geom_bar(stat = "identity")
+p <- p + ylab("Total Award Amount")
+p <- p + xlab("Year")
+p <- p + ggtitle('SO sum of Award Amount by Year')
+p <- p + geom_text(aes(label = total_award_amount, y = total_award_amount), vjust = -.5) # add values at the ends of bars
+p
+
+#pdf("Q4.pdf", width = 6, height = 6)
+#dev.off()
+
+
+# Remove column: Year_factor
+for_plot = subset(for_plot, select = - Year_factor )
+
+# Make Table #library("kableExtra")
+for_plot %>%
+  kbl() %>%
+  kable_styling()
+
+
+
+#-------------------------------------------------------------------------------
+#QQ Q5 count of each ESR values by Year
+# Group Count of Electronic Responses by 0,1,2,3,4,5,>5, and sum of the number of Bid Number in each group 
+# Barchart
+# x-axis: FY Order Date' (year) & 0,1,2,3,4,5,>5 # y-axis: sum of the number of Bid Number` in each group
+# add linear plot of Annual Average 
+
+
+# grouping ESR_COUNT 
+QQ1617181920a602$ESR_COUNT_group <- ifelse(QQ1617181920a602$ESR_COUNT > 5, ">5", as.character(QQ1617181920a602$ESR_COUNT))
+
+for_plot <- QQ1617181920a602 %>%
+  group_by(fiscal_year, ESR_COUNT_group) %>%
+  select(fiscal_year, ESR_COUNT_group, `QQ ID`) %>%
+  summarize(QQ_count = n_distinct(`QQ ID`), .groups = "drop")
+
+# proper order
+for_plot$ESR_COUNT_group <- factor(for_plot$ESR_COUNT_group, levels = c(as.character(0:5), ">5"))
+for_plot$Year_factor <- as.factor(for_plot$fiscal_year)
+
+# add line plot of annual averages
+annual_av2 <- tapply(for_plot$QQ_count, for_plot$fiscal_year, mean)
+annual_av2 <- as.data.frame(annual_av2)
+annual_av2$Year_factor <- factor(rownames(annual_av2))
+
+#QQ Remove NA Year
+for_plot <- for_plot %>%
+  drop_na()
+
+# dummy value for ESR_COUNT_group as ggplot complains if this column is missing
+annual_av2$'ESR_COUNT_group' <- "0"
+
+p <- ggplot(for_plot, aes(x = Year_factor, y = QQ_count, fill = ESR_COUNT_group))
+p <- p + geom_bar(stat = "identity")
+p <- p + ylab("Total QQ Count")
+p <- p + xlab("Year")
+p <- p + labs(fill = "Count of Electronic Responses")
+p <- p + geom_point(data = annual_av2, aes(x = Year_factor, y = annual_av2, group = 1))
+p <- p + geom_line(data = annual_av2, aes(x = Year_factor, y = annual_av2, group = 1))
+p
+
+#pdf("Q5.pdf", width = 8, height = 8)
+#dev.off()
+
+
+# dummy value for ESR_COUNT_group as ggplot complains if this column is missing
+annual_av2$ESR_COUNT_group <- "3"
+
+
+p2 <- ggplot(for_plot, aes(x = Year_factor, y = QQ_count, fill = ESR_COUNT_group))
+p2 <- p2 + geom_bar(stat = "identity", position = "dodge")
+p2 <- p2 + ylab("Total QQ Count")
+p2 <- p2 + xlab("Year")
+p2 <- p2 + labs(fill = "Count of Electronic Responses")
+p2 <- p2 + geom_point(data = annual_av2, aes(x = Year_factor, y = annual_av2, group = 1))
+p2 <- p2 + geom_line(data = annual_av2, aes(x = Year_factor, y = annual_av2, group = 1))
+p2
+
+#pdf("Q5_alternative.pdf", width = 8, height = 8)
+#dev.off()
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
+#SO Q5 count of each ESR values by Year
+# Group Count of Electronic Responses by 0,1,2,3,4,5,>5, and sum of the number of Bid Number in each group (different to excel)
+# Barchart
+# x-axis: FY Order Date' (year) & 0,1,2,3,4,5,>5 # y-axis: sum of the number ofBid Number` in each group
+
+for_plot <- SO1617181920a602%>%
+  group_by(fiscal_year, `Count of Electronic Responses`) %>%
+  select(fiscal_year, `Count of Electronic Responses`, `Bid Number`) %>%
+  summarize(num_orders = n_distinct(`Bid Number`), .groups = "drop")
+
+for_plot$Electronic_factor <- as.factor(for_plot$`Count of Electronic Responses`)
+for_plot$Year_factor <- as.factor(for_plot$fiscal_year)
+
+p <- ggplot(for_plot, aes(x = Year_factor, y = num_orders, fill = Electronic_factor))
+p <- p + geom_bar(stat = "identity")
+p <- p + ylab("Total Number of Orders")
+p <- p + xlab("Order Year")
+p <- p + labs(fill = "Count of ER's")
+p
+
+#pdf("Q5.pdf", width = 6, height = 6)
+#dev.off()
+
+
+#-------------------------------------------------------------------------------
+
+
+#SO Q6 Average days between Original Publish Date and Award Date
+# Barchart
+# X-axis: Average days between Original Publish Date and Award Date
+# y-axis: Financial year
+
+# remove rows where Award Date is NA
+tmp_df <- SO1617181920a602[!is.na(SO1617181920a602$`Award Date`), ]
+
+# keep only rows where Award Date > Original Publish Date keep only rows where Award Date > Original Publish Date
+tmp_df <- tmp_df[lubridate::ymd(tmp_df$`Award Date`) > lubridate::ymd(tmp_df$`Original Publish Date`), ]
+
+# calculate differences between dates
+tmp_df$Award_Pub_diff <- difftime(lubridate::ymd(tmp_df$`Award Date`), lubridate::ymd(tmp_df$`Original Publish Date`), units = "days")
+
+#SO Financial Year :  create column fiscal_year for Financial Year July to June (FY) 
+tmp_df$fiscal_year <- get_fy(tmp_df$`Award Date`)
+
+# Find Average Days
+mean_days <- tapply(tmp_df$Award_Pub_diff, tmp_df$fiscal_year, mean)
+view(mean_days)
+
+#make data frame
+mean_daysDt <- as.data.frame(mean_days)
+mean_daysDt <- cbind(Row.Names = rownames(mean_daysDt), mean_daysDt)
+mean_daysDt
+  
+# Make Table #library("kableExtra")
+mean_days %>%
+  kbl() %>%
+  kable_styling()
+
+#QQ Remove 2021 
+mean_daysDt <- mean_daysDt %>%
+  filter(Row.Names != 2021)
+
+
+p <- ggplot(mean_daysDt, aes(x = Row.Names , y = mean_days))
+p <- p + geom_bar(stat = "identity", fill = "#FF6666")
+p <- p + ylab("days")
+p <- p + xlab("Year")
+p <- p + ggtitle("Ave. days SO Orig.Pub.Date/Aw.Date ")
+p
+
+
+
+# Q7 ----------------------------------------------------------------------
+#PO Q7 Average days between Requisition Submitted Date & Requisition Approved Date by Financial Year
+# PO: Barchart 
+# x-axis: Average number of days between Requisition Submitted Date & Requisition Approved Date. Ave. time label at end of bar.
+# y-axis: Financial Year
+
+# remove rows where `Requisition Approved Date` is NA
+tmp_df <- PO1617181920a602[!is.na(PO1617181920a602$`Requisition Approved Date`), ]
+# remove rows where `Requisition submitted date` is NA
+tmp_df <- PO1617181920a602[!is.na(PO1617181920a602$`Requisition submitted date`), ]
+
+
+# keep only rows where `Requisition Approved Date`  > `Requisition submitted date` 
+tmp_df <- tmp_df[lubridate::ymd(tmp_df$`Requisition Approved Date` ) > lubridate::ymd(tmp_df$`Requisition submitted date`), ]
+
+# calculate differences between dates
+tmp_df$Award_Pub_diff <- difftime(lubridate::ymd(tmp_df$`Requisition Approved Date`), lubridate::ymd(tmp_df$`Requisition submitted date`), units = "days")
+
+#SO Financial Year :  create column fiscal_year for Financial Year July to June (FY) 
+tmp_df$`FY Requisition Approved Date` <- get_fy(tmp_df$`Requisition Approved Date`)
+
+class(tmp_df$`Requisition Approved Date`)
+
+# Find Average Days
+mean_days <- tapply(tmp_df$Award_Pub_diff, tmp_df$`FY Requisition Approved Date`, mean)
+
+# Make Table #library("kableExtra")
+mean_days %>%
+  kbl() %>%
+  kable_styling()
+
+#make data frame
+mean_daysDt <- as.data.frame(mean_days)
+mean_daysDt <- cbind(Row.Names = rownames(mean_daysDt), mean_daysDt)
+mean_daysDt
+
+p <- ggplot(mean_daysDt, aes(x = Row.Names , y = mean_days))
+p <- p + geom_bar(stat = "identity", fill = "#FF6666")
+p <- p + ylab("days")
+p <- p + xlab("Year")
+p <- p + ggtitle("Ave.days PO Req.Sub.Dte/Req.App.Dte ")
+p
+
+
+
+#--------------------------------------------------------------
+
+
+#SO Q8 Number of orders Bid Number by month and Financial Year
+# Barchart
+# X-axis: Count of Bid Number grouped by month
+# y-axis: Month and year with breaks on Financial year end: June/July (60 rows: 12 months x 5 years )
+
+# excluding NA Award dates
+tmp_df <- SO1617181920a602
+
+tmp_df$MONTH <- lubridate::month(tmp_df$`Publish Date`)
+tmp_df$YEAR <- lubridate::year(tmp_df$`Publish Date`)
+tmp_df$YM <- paste0(tmp_df$YEAR, "-", tmp_df$MONTH)
+
+tmp_df$YM <- factor(tmp_df$YM, levels = c(c(paste0("2015-", 7:12), paste0("2016-", 1:6)),
+                                          c(paste0("2016-", 7:12), paste0("2017-", 1:6)),
+                                          c(paste0("2017-", 7:12), paste0("2018-", 1:6)),
+                                          c(paste0("2018-", 7:12), paste0("2019-", 1:6)),
+                                          c(paste0("2019-", 7:12), paste0("2020-", 1:6))
+))
+
+tmp_df$GROUP <- ifelse(tmp_df$YM %in% c(paste0("2015-", 7:12), paste0("2016-", 1:6)), "2015-2016",
+                       ifelse(tmp_df$YM %in% c(paste0("2016-", 7:12), paste0("2017-", 1:6)), "2016-2017",
+                              ifelse(tmp_df$YM %in% c(paste0("2017-", 7:12), paste0("2018-", 1:6)), "2017-2018",
+                                     ifelse(tmp_df$YM %in% c(paste0("2018-", 7:12), paste0("2019-", 1:6)), "2018-2019", "2019-2020"))))
+
+for_plot <- tmp_df %>%
+  group_by(YM, GROUP) %>%
+  select(GROUP, YM, `Bid Number`) %>%
+  summarize(num_orders = n_distinct(`Bid Number`), .groups = "drop")
+
+p <- ggplot(for_plot, aes(x = YM, y = num_orders, fill = GROUP))
+p <- p + geom_bar(stat = "identity")
+p <- p + geom_text(aes(label = num_orders, y = num_orders), hjust = -.5)
+p <- p + facet_wrap(GROUP~., scales = "free_y")
+p <- p + coord_flip()
+p <- p + xlab("Year-Month")
+p <- p + ylab("SO Total Number of Orders")
+p <- p + theme(legend.position = "none") # to remove the legend
+p
+
+#pdf("Q8.pdf", width = 25, height = 10)
+#dev.off()
+
+
+# Make Table #library("kableExtra")
+for_plot %>%
+  kbl() %>%
+  kable_styling()
+
+#--------------------------------------------------------------
+#--------------------------------------------------------------
+
+#QQ
+#QQ Q8 Number of orders QQ ID by month and Financial Year
+# Barchart
+# X-axis: Count of QQ ID grouped by month
+# y-axis: Month and year with breaks on Financial year end: June/July (60 rows: 12 months x 5 years )
+
+# excluding NA Award dates
+tmp_df <- QQ1617181920a602
+
+tmp_df$MONTH <- lubridate::month(tmp_df$`Original Publish Date`)
+tmp_df$YEAR <- lubridate::year(tmp_df$`Original Publish Date`)
+tmp_df$YM <- paste0(tmp_df$YEAR, "-", tmp_df$MONTH)
+
+tmp_df$YM <- factor(tmp_df$YM, levels = c(c(paste0("2015-", 7:12), paste0("2016-", 1:6)),
+                                          c(paste0("2016-", 7:12), paste0("2017-", 1:6)),
+                                          c(paste0("2017-", 7:12), paste0("2018-", 1:6)),
+                                          c(paste0("2018-", 7:12), paste0("2019-", 1:6)),
+                                          c(paste0("2019-", 7:12), paste0("2020-", 1:6))
+))
+
+tmp_df$GROUP <- ifelse(tmp_df$YM %in% c(paste0("2015-", 7:12), paste0("2016-", 1:6)), "2015-2016",
+                       ifelse(tmp_df$YM %in% c(paste0("2016-", 7:12), paste0("2017-", 1:6)), "2016-2017",
+                              ifelse(tmp_df$YM %in% c(paste0("2017-", 7:12), paste0("2018-", 1:6)), "2017-2018",
+                                     ifelse(tmp_df$YM %in% c(paste0("2018-", 7:12), paste0("2019-", 1:6)), "2018-2019", "2019-2020"))))
+
+for_plot <- tmp_df %>%
+  group_by(YM, GROUP) %>%
+  select(GROUP, YM, `QQ ID`) %>%
+  summarize(num_orders = n_distinct(`QQ ID`), .groups = "drop")
+
+p <- ggplot(for_plot, aes(x = YM, y = num_orders, fill = GROUP))
+p <- p + geom_bar(stat = "identity")
+p <- p + geom_text(aes(label = num_orders, y = num_orders), hjust = -.5)
+p <- p + facet_wrap(GROUP~., scales = "free_y")
+p <- p + coord_flip()
+p <- p + xlab("Year-Month")
+p <- p + ylab("Total Number of Orders")
+p <- p + theme(legend.position = "none") # to remove the legend
+p
+
+#pdf("Q8.pdf", width = 25, height = 10)
+#dev.off()
+
+
+# Make Table #library("kableExtra")
+for_plot %>%
+  kbl() %>%
+  kable_styling()
+
+#--------------------------------------------------------------
+#9. 	PO, SO & QQ Volume 
+#Are there times of the year where orders increase/decrease? Measure count of orders: PO ('Entity Code'), SO ('Bid Number'), QQ ('QQ ID') s per month to determine if there is a trend over the 5 years indicating common months where a lot or a few Pos/SOs are issued. Use PO 'Requisition Submitted Date', QQ 'Original Publish Date' & SO 'Publish Date' .
+
+
+#SO
+#SO Q9 Number of Awarded orders Bid Number by month and Financial Year
+# Barchart
+# X-axis: Count of 'Awarded' Bid Number grouped by month
+# y-axis: Month and year with breaks on Financial year end: June/July (60 rows: 12 months x 5 years )
+
+# Keep "Awarded" rows
+tmp_df <- SO1617181920a602[SO1617181920a602$Status == "Awarded", ]
+
+tmp_df$MONTH <- lubridate::month(tmp_df$`Publish Date`)
+tmp_df$YEAR <- lubridate::year(tmp_df$`Publish Date`)
+tmp_df$YM <- paste0(tmp_df$YEAR, "-", tmp_df$MONTH)
+
+tmp_df$YM <- factor(tmp_df$YM, levels = c(c(paste0("2015-", 7:12), paste0("2016-", 1:6)),
+                                          c(paste0("2016-", 7:12), paste0("2017-", 1:6)),
+                                          c(paste0("2017-", 7:12), paste0("2018-", 1:6)),
+                                          c(paste0("2018-", 7:12), paste0("2019-", 1:6)),
+                                          c(paste0("2019-", 7:12), paste0("2020-", 1:6))
+))
+
+tmp_df$GROUP <- ifelse(tmp_df$YM %in% c(paste0("2015-", 7:12), paste0("2016-", 1:6)), "2015-2016",
+                       ifelse(tmp_df$YM %in% c(paste0("2016-", 7:12), paste0("2017-", 1:6)), "2016-2017",
+                              ifelse(tmp_df$YM %in% c(paste0("2017-", 7:12), paste0("2018-", 1:6)), "2017-2018",
+                                     ifelse(tmp_df$YM %in% c(paste0("2018-", 7:12), paste0("2019-", 1:6)), "2018-2019", "2019-2020"))))
+
+for_plot <- tmp_df %>%
+  group_by(YM, GROUP) %>%
+  select(GROUP, YM, `Bid Number`) %>%
+  summarize(num_orders = n_distinct(`Bid Number`), .groups = "drop")
+
+p <- ggplot(for_plot, aes(x = YM, y = num_orders, fill = GROUP))
+p <- p + geom_bar(stat = "identity")
+p <- p + geom_text(aes(label = num_orders, y = num_orders), hjust = -.5)
+p <- p + facet_wrap(GROUP~., scales = "free_y")
+p <- p + coord_flip()
+p <- p + xlab("Year-Month")
+p <- p + ylab("SO Total Volume of Orders")
+p <- p + theme(legend.position = "none") # to remove the legend
+p
+
+#pdf("  /Q9.pdf", width = 20, height = 10)
+#dev.off()
+
+# Make Table #library("kableExtra")
+for_plot %>%
+  kbl() %>%
+  kable_styling()
+
+
+#---------------------------------------------------------------
+#PO
+#PO Q9 Number of orders Bid Number 'Order #' by month and Financial Year
+# Barchart
+# X-axis: Count of 'Order #' grouped by month
+# y-axis: Month and year with breaks on Financial year end: June/July (60 rows: 12 months x 5 years )
+
+# Make temporary file
+tmp_df <- PO1617181920a602
+
+tmp_df$MONTH <- lubridate::month(tmp_df$'Requisition submitted date')
+tmp_df$YEAR <- lubridate::year(tmp_df$'Requisition submitted date')
+tmp_df$YM <- paste0(tmp_df$YEAR, "-", tmp_df$MONTH)
+
+tmp_df$YM <- factor(tmp_df$YM, levels = c(c(paste0("2015-", 7:12), paste0("2016-", 1:6)),
+                                          c(paste0("2016-", 7:12), paste0("2017-", 1:6)),
+                                          c(paste0("2017-", 7:12), paste0("2018-", 1:6)),
+                                          c(paste0("2018-", 7:12), paste0("2019-", 1:6)),
+                                          c(paste0("2019-", 7:12), paste0("2020-", 1:6))
+))
+
+tmp_df$GROUP <- ifelse(tmp_df$YM %in% c(paste0("2015-", 7:12), paste0("2016-", 1:6)), "2015-2016",
+                       ifelse(tmp_df$YM %in% c(paste0("2016-", 7:12), paste0("2017-", 1:6)), "2016-2017",
+                              ifelse(tmp_df$YM %in% c(paste0("2017-", 7:12), paste0("2018-", 1:6)), "2017-2018",
+                                     ifelse(tmp_df$YM %in% c(paste0("2018-", 7:12), paste0("2019-", 1:6)), "2018-2019", "2019-2020"))))
+
+for_plot <- tmp_df %>%
+  group_by(YM, GROUP) %>%
+  select(GROUP, YM, `Order #`) %>%
+  summarize(num_orders = n_distinct(`Order #`), .groups = "drop")
+
+p <- ggplot(for_plot, aes(x = YM, y = num_orders, fill = GROUP))
+p <- p + geom_bar(stat = "identity")
+p <- p + geom_text(aes(label = num_orders, y = num_orders), hjust = -.5)
+p <- p + facet_wrap(GROUP~., scales = "free_y")
+p <- p + coord_flip()
+p <- p + xlab("Year-Month")
+p <- p + ylab("PO Total Number of Orders")
+p <- p + theme(legend.position = "none") # to remove the legend
+p
+
+#pdf("  /Q9.pdf", width = 20, height = 10)
+#dev.off()
+
+
+
+#----------------------------------------------------------------------------
+#QQ  'Original Published Date' `QQ ID`
+#QQ Q9 Number of Awarded orders `QQ ID` by month and Financial Year
+# Barchart
+# X-axis: Count of 'Awarded' `QQ ID` grouped by month
+# y-axis: Month and year with breaks on Financial year end: June/July (60 rows: 12 months x 5 years )
+
+# Keep "Awarded" rows
+tmp_df <- QQ1617181920a602[QQ1617181920a602$Status == "awarded", ]
+
+tmp_df$MONTH <- lubridate::month(tmp_df$'Original Published Date' )
+tmp_df$YEAR <- lubridate::year(tmp_df$'Original Published Date' )
+tmp_df$YM <- paste0(tmp_df$YEAR, "-", tmp_df$MONTH)
+
+tmp_df$YM <- factor(tmp_df$YM, levels = c(c(paste0("2015-", 7:12), paste0("2016-", 1:6)),
+                                          c(paste0("2016-", 7:12), paste0("2017-", 1:6)),
+                                          c(paste0("2017-", 7:12), paste0("2018-", 1:6)),
+                                          c(paste0("2018-", 7:12), paste0("2019-", 1:6)),
+                                          c(paste0("2019-", 7:12), paste0("2020-", 1:6))
+))
+
+tmp_df$GROUP <- ifelse(tmp_df$YM %in% c(paste0("2015-", 7:12), paste0("2016-", 1:6)), "2015-2016",
+                       ifelse(tmp_df$YM %in% c(paste0("2016-", 7:12), paste0("2017-", 1:6)), "2016-2017",
+                              ifelse(tmp_df$YM %in% c(paste0("2017-", 7:12), paste0("2018-", 1:6)), "2017-2018",
+                                     ifelse(tmp_df$YM %in% c(paste0("2018-", 7:12), paste0("2019-", 1:6)), "2018-2019", "2019-2020"))))
+
+for_plot <- tmp_df %>%
+  group_by(YM, GROUP) %>%
+  select(GROUP, YM, `QQ ID`) %>%
+  summarize(num_orders = n_distinct(`QQ ID`), .groups = "drop")
+
+
+p <- ggplot(for_plot, aes(x = YM, y = num_orders, fill = GROUP))
+p <- p + geom_bar(stat = "identity")
+p <- p + geom_text(aes(label = num_orders, y = num_orders), hjust = -.5)
+p <- p + facet_wrap(GROUP~., scales = "free_y")
+p <- p + coord_flip()
+p <- p + xlab("Year-Month")
+p <- p + ylab("QQ Total Number of Orders")
+p <- p + theme(legend.position = "none") # to remove the legend
+p
+
+#pdf("  /Q9.pdf", width = 20, height = 10)
+#dev.off()
+
+# Make Table #library("kableExtra")
+for_plot %>%
+  kbl() %>%
+  kable_styling()
+#------------------------------------------------------------------
+#-------------------------------------------------------------
+#-------------------------------------------------------------
+#-------------------------------------------------------------
+
+#SO 'Original Published Date' Bid Number
+#SO Q9 Number of Awarded orders Bid Number by month and Financial Year
+# Barchart
+# X-axis: Count of 'Awarded' Bid Number grouped by month
+# y-axis: Month and year with breaks on Financial year end: June/July (60 rows: 12 months x 5 years )
+
+
+# Keep "Awarded" rows
+tmp_df <- SO1617181920a602[SO1617181920a602$Status == "Awarded", ]
+
+tmp_df$MONTH <- lubridate::month(lubridate::ymd(tmp_df$`Original Publish Date`))
+tmp_df$YEAR <- lubridate::year(lubridate::ymd(tmp_df$`Original Publish Date`))
+tmp_df$YM <- paste0(tmp_df$YEAR, "-", tmp_df$MONTH)
+
+tmp_df$YM <- factor(tmp_df$YM, levels = c(c(paste0("2015-", 7:12), paste0("2016-", 1:6)),
+                                          c(paste0("2016-", 7:12), paste0("2017-", 1:6)),
+                                          c(paste0("2017-", 7:12), paste0("2018-", 1:6)),
+                                          c(paste0("2018-", 7:12), paste0("2019-", 1:6)),
+                                          c(paste0("2019-", 7:12), paste0("2020-", 1:6))
+))
+
+tmp_df$GROUP <- ifelse(tmp_df$YM %in% c(paste0("2015-", 7:12), paste0("2016-", 1:6)), "2015-2016",
+                       ifelse(tmp_df$YM %in% c(paste0("2016-", 7:12), paste0("2017-", 1:6)), "2016-2017",
+                              ifelse(tmp_df$YM %in% c(paste0("2017-", 7:12), paste0("2018-", 1:6)), "2017-2018",
+                                     ifelse(tmp_df$YM %in% c(paste0("2018-", 7:12), paste0("2019-", 1:6)), "2018-2019", "2019-2020"))))
+
+for_plot <- tmp_df %>%
+  group_by(YM, GROUP) %>%
+  select(GROUP, YM, `Bid Number`) %>%
+  summarize(num_orders = n_distinct(`Bid Number`), .groups = "drop")
+
+p <- ggplot(for_plot, aes(x = YM, y = num_orders, fill = GROUP))
+p <- p + geom_bar(stat = "identity")
+p <- p + geom_text(aes(label = num_orders, y = num_orders), hjust = -.5)
+p <- p + facet_grid(GROUP~., scales = "free_y")
+p <- p + coord_flip()
+p <- p + xlab("Year-Month")
+p <- p + ylab("Total Number of Orders")
+p <- p + theme(legend.position = "none") # to remove the legend
+p
+#pdf("Q9.pdf", width = 20, height = 10)
+#p
+#dev.off()
+
+#-------------------------------------------------------------
+#-------------------------------------------------------------
+#-------------------------------------------------------------
+
+#PO Q10 Ratio/% of Self Registered/State Registered/UnRegistered for each year
+# Percent stacked barchart?
+
+PO_df <- PO1617181920a602
+
+percs_by_year <- tapply(PO_df$`Registration Type`, PO_df$fiscal_year, function(x) table(x) / sum(table(x)) * 100)
+
+# fill in missing data
+#percs_by_year[["2020"]] <- c(percs_by_year[["2020"]], `Un-Registered` = 0)
+
+for_plot <- do.call(rbind, percs_by_year)
+for_plot <- reshape2::melt(for_plot)
+for_plot$Var2 <- as.factor(for_plot$Var2)
+for_plot$labels <- round(for_plot$value, 2)
+
+p <- ggplot(for_plot, aes(x = Var2, y = value, fill = Var2))
+p <- p + geom_bar(stat = "identity")
+p <- p + facet_wrap(Var1~.)
+p <- p + geom_text(aes(label = labels , y = value), vjust = -.5)
+p <- p + xlab("Registration Type")
+p <- p + ylab("Percentage")
+p <- p + labs(fill = "PO Registration Type")
+p
+
+
+# Make Table 
+for_plot <- for_plot[order(for_plot$Var1), ]
+for_plot %>%
+  kbl() %>%
+  kable_styling()
+
+
+
+
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
+
+# From PO table plot the % of `Total Cost` that are at least one SWaM category for each year
+
+# Total Sum of SwaM `Total Cost`for each year /  Sum `Total Cost`for each year * 100 for %
+
+PO_df <- PO1617181920a602
+
+PO_df$All_SWAM <- PO_df$`SWAM Micro Business` + PO_df$`SWAM Minority` + PO_df$`SWAM Small` + PO_df$`SWAM Woman`
+PO_df$All_SWAM <- ifelse(PO_df$All_SWAM > 0, 1, 0)
+
+PO_df$`SWAM Micro Business` <- as.numeric(PO_df$`SWAM Micro Business`)
+
+#PO_df$`SWAM Micro Business` <- PO_df$`SWAM Micro Business` %>%
+ # drop_na()
+
+for_plot <- PO_df[!is.na(PO_df$All_SWAM), ]
+for_plot <- for_plot %>%
+  group_by(fiscal_year) %>%
+  select(fiscal_year, All_SWAM, `Total Cost`) %>%
+  summarize(percent_swam = sum(All_SWAM * `Total Cost`) / sum(`Total Cost`) * 100, .groups = "drop")
+
+for_plot$YEAR_factor <- as.factor(for_plot$fiscal_year)
+
+p <- ggplot(for_plot, aes(x = YEAR_factor, y = percent_swam, fill = YEAR_factor))
+p <- p + geom_bar(stat = "identity")
+p <- p + ylab("% at least one SWAM")
+p <- p + xlab("Order Year")
+p <- p + labs(fill = "Order Year")
+p <- p + geom_hline(yintercept = 42, linetype = "dashed", color = "red")
+p
+
+# Make Table 
+for_plot %>%
+  kbl() %>%
+  kable_styling()
